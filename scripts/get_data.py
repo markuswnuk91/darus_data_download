@@ -18,6 +18,7 @@ config_template = {
     "datasets": [
         "doi:10.18419/darus-????",
     ],
+    "options": {"downloadExistingData": "N"},
 }
 
 
@@ -131,11 +132,16 @@ if __name__ == "__main__":
                     os.path.join(get_script_path(), "..", "data", folder_name)
                 )
                 if os.path.exists(folder):
-                    download_data = input(
-                        f"The folder {folder} already exists. Do you want to download it again? (y/n)"
-                    )
-                    if download_data.lower() == "n":
+                    if config_obj["options"]["downloadExistingData"] == "N":
                         continue
+                    elif config_obj["options"]["downloadExsistingData"] == "Y":
+                        pass
+                    else:
+                        download_data = input(
+                            f"The folder {folder} already exists. Do you want to download it again? (y/n)"
+                        )
+                        if download_data.lower() == "n":
+                            continue
                 os.makedirs(folder, exist_ok=True)
 
                 files_list = dataset_ref.json()["data"]["latestVersion"]["files"]
