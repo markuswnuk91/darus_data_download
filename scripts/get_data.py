@@ -145,9 +145,10 @@ if __name__ == "__main__":
                 os.makedirs(folder, exist_ok=True)
 
                 files_list = dataset_ref.json()["data"]["latestVersion"]["files"]
-
+                print("Downloading...")
                 for file in files_list:
                     filename = file["dataFile"]["filename"]
+                    print("File: {}".format(filename))
                     if "directoryLabel" in file:  # need if dataset has folderstructure
                         folderpath = file["directoryLabel"]
                     else:
@@ -162,6 +163,7 @@ if __name__ == "__main__":
                 with open(os.path.join(folder, "info.json"), "w") as json_metadata_f:
                     metadata = dataset_ref.json()["data"]
                     json.dump(metadata, json_metadata_f, indent=4)
+                print("Done.")
         except ApiAuthorizationError as e:
             no_key_given = "" if api_key else "without API key"
             print("Cannot access data with id:", dataset_identifier, no_key_given, ".")
