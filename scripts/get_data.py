@@ -6,6 +6,7 @@ import sys
 import unicodedata
 import re
 from typing import List
+import argparse
 
 from pyDataverse.api import DataAccessApi, NativeApi
 
@@ -100,18 +101,44 @@ def load_config_from_file():
 if __name__ == "__main__":
     if create_config_template_if_needed():
         exit(0)
-
     config_obj = load_config_from_file()
     api_key = load_api_key_from_file()
 
-    if api_key:
-        api = NativeApi(config_obj["dataverse_url"], api_token=api_key)
-        data_api = DataAccessApi(config_obj["dataverse_url"], api_token=api_key)
-    else:  # no api key provided. assuming public dataset.
-        api = NativeApi(config_obj["dataverse_url"])
-        data_api = DataAccessApi(config_obj["dataverse_url"])
+    # check user input
+    try:
+        parser = argparse.ArgumentParser(
+            description="Download DaRUS Dataverses",
+            epilog="Loads DaRUS Dataverses specify the Dataverse URL as command line argument, otherwise the configruation file is used.",
+        )
+        parser.add_argument(
+            "--doi",
+            type=str,
+            nargs="*",
+            default=None,
+            required=False,
+            help="data set identifier for data set to download",
+        )
+        args = parser.parse_args()
+        user_provided_identifiers = args.doi
+    except KeyboardInterrupt:
+        print("User has exited the program")
 
-    for dataset_identifier in config_obj["datasets"]:
+    # get info for download
+    dataverse_url = config_obj["dataverse_url"]
+    if user_provided_identifiers is not None:
+        dataset_identifiers = user_provided_identifiers
+    else:
+        dataset_identifiers = config_obj["datasets"]
+
+    # download
+    if api_key:
+        api = NativeApi(dataverse_url, api_token=api_key)
+        data_api = DataAccessApi(dataverse_url, api_token=api_key)
+    else:  # no api key provided. assuming public dataset.
+        api = NativeApi(dataverse_url)
+        data_api = DataAccessApi(dataverse_url)
+
+    for dataset_identifier in dataset_identifiers:
         try:
             dataset_ref = api.get_dataset(dataset_identifier)
             # print(json.dumps(dataset_ref.json(), indent=4))
